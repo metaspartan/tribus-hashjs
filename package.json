@@ -1,0 +1,39 @@
+{
+  "name": "tribus-hashjs",
+  "version": "1.0.0",
+  "description": "Tribus javascript hashing algorithm in pure javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/test.js",
+    "clean": "rm -rfv dist/*",
+    "benchmark": "node test/benchmarks.js",
+    "build": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carsenk/tribus-hashjs.git"
+  },
+  "keywords": [
+    "tribus",
+    "keccak",
+    "echo",
+    "denarius",
+    "jh"
+  ],
+  "author": "carsenk",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carsenk/tribus-hashjs/issues"
+  },
+  "devDependencies": {
+    "benchmark": "^2.1.0",
+    "browserify": "^13.0.1",
+    "chai": "^3.5.0",
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "mocha": "^2.5.3",
+    "uglify": "^0.1.5"
+  }
+}
