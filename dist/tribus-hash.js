@@ -1,4 +1,4 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+require=(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var op = require('./op');
 var h = require('./helper');
 
@@ -299,13 +299,9 @@ module.exports.AES_ROUND_NOKEY_LE = function(X, Y) {
     op.bufferSet(K, 0, 0, 4);
     this.AES_ROUND_LE(X, K, Y);
 }
-},{"./helper":7,"./op":11}],2:[function(require,module,exports){
+},{"./helper":3,"./op":6}],2:[function(require,module,exports){
 /////////////////////////////////////
 ///////////////  Echo ///////////////
-
-//// Written by Quantum Explorer ////
-////////// Dash Foundation //////////
-/// Released under the MIT License //
 /////////////////////////////////////
 
 var op = require('./op');
@@ -586,13 +582,264 @@ module.exports = function(input, format, output) {
   }
   return out;
 }
-},{"./aes":1,"./helper":7,"./op":11}],6:[function(require,module,exports){
+
+},{"./aes":1,"./helper":3,"./op":6}],3:[function(require,module,exports){
+'use strict';
+// String functions
+
+var op = require('./op.js');
+
+module.exports.int8ArrayToHexString = function toString(array) {
+	var string = '';
+
+	for (var i = 0; i < array.length; i++) {
+		if (array[i] < 16) {
+			string += '0' + array[i].toString(16);
+		}
+		else {
+			string += array[i].toString(16);
+		}
+	}
+	return string;
+}
+
+module.exports.int32ArrayToHexString = function toString(array) {
+	var string = '';
+	var len = array.length;
+	for (var i = 0; i < len; i++) {
+		var s = array[i];
+		if (s < 0) {
+			s = 0xFFFFFFFF + array[i] + 1;
+		}
+		var l = s.toString(16);
+		var padding = 8;
+		while (l.length < padding) {
+			l = "0" + l;
+		}
+		string += l;
+	}
+	return string;
+}
+
+module.exports.hex2string = function toString(s) {
+	for (var c = [], len = s.length, i = 0; i < len; i += 2)
+		c.push(String.fromCharCode(parseInt(s.substring(i, i + 2), 16)));
+	return c.join('');
+}
+
+module.exports.hex2bytes = function toString(s) {
+	for (var c = [], len = s.length, i = 0; i < len; i += 2)
+		c.push(parseInt(s.substring(i, i + 2), 16));
+	return c;
+}
+/*
+module.exports.string2hex = function toString(s) {
+
+	for (var p = [], len = s.length, i = 0; i < len; i++) {
+		p.push((256 + s.charCodeAt(i)).toString(16).substring(1));
+	}
+	return p.join('');
+}
+*/
+module.exports.string2bytes = function(s) {
+	var len = s.length;
+	var b = new Array(len);
+	var i = 0;
+	while (i < len) {
+		b[i] = s.charCodeAt(i);
+		i++;
+	}
+	return b;
+}
+/*
+module.exports.bytes2Int16Buffer = function(b) {
+	var len = b.length;
+	var bufferLength = len ? (((len - 1) >>> 1) + 1) : 0;
+	var buffer = new Array(bufferLength);
+	var i = 0;
+	var j = 0;
+	while (i < len) {
+		buffer[j] = (buffer[j] << 8) | b[i];
+		i++;
+		if (!(i % 2)) j++;
+	}
+	return buffer;
+}
+*/
+
+module.exports.bytes2Int32Buffer = function(b) {
+	if (!b) return [];
+	var len = b.length ? (((b.length - 1) >>> 2) + 1) : 0;
+	var buffer = new Array(len);
+	var j = 0;
+	while (j < len) {
+		buffer[j] = (b[j * 4] << 24) | (b[j * 4 + 1] << 16) | (b[j * 4 + 2] << 8) | b[j * 4 + 3];
+		j++;
+	}
+	return buffer;
+}
+/*
+module.exports.bytes2Int32BufferLeAligned = function(b) {
+	var len = b.length;
+	if (!len) return [];
+	var len2 = len ? (((len - 1) >>> 2) + 1) : 0;
+	var buffer = new Array(len);
+	var j = 0;
+	while (j < len2) {
+		buffer[j] = (b[j * 4 + 3] << 24) | (b[j * 4 + 2] << 16) | (b[j * 4 + 1] << 8) | b[j * 4];
+		j++;
+	};
+	return buffer;
+}
+*/
+module.exports.bytes2Int64Buffer = function(b) {
+	if (!b) return [];
+	var len = b.length ? (((b.length - 1) >>> 3) + 1) : 0;
+	var buffer = new Array(len);
+	var j = 0;
+	while (j < len) {
+		buffer[j] = new op.u64((b[j * 8] << 24) | (b[j * 8 + 1] << 16) | (b[j * 8 + 2] << 8) | b[j * 8 + 3], (b[j * 8 + 4] << 24) | (b[j * 8 + 5] << 16) | (b[j * 8 + 6] << 8) | b[j * 8 + 7]);
+		j++;
+	}
+	return buffer;
+}
+
+module.exports.bytes2Int64BufferLeAligned = function(b) {
+	if (!b) return [];
+	var len =  b.length ? ((( b.length - 1) >>> 3) + 1) : 0;
+	var buffer = new Array(len);
+	var j = 0;
+	while (j < len) {
+		buffer[j] = new op.u64((b[j * 8 + 7] << 24) | (b[j * 8 + 6] << 16) | (b[j * 8 + 5] << 8) | b[j * 8 + 4], (b[j * 8 + 3] << 24) | (b[j * 8 + 2] << 16) | (b[j * 8 + 1] << 8) | b[j * 8]);
+		j++;
+	}
+	return buffer;
+}
+
+module.exports.bufferEncode64leAligned = function(buffer, offset, uint64) {
+	buffer[offset + 7] = uint64.hi >>> 24;
+	buffer[offset + 6] = uint64.hi >>> 16 & 0xFF;
+	buffer[offset + 5] = uint64.hi >>> 8 & 0xFF;
+	buffer[offset + 4] = uint64.hi & 0xFF;
+	buffer[offset + 3] = uint64.lo >>> 24;
+	buffer[offset + 2] = uint64.lo >>> 16 & 0xFF;
+	buffer[offset + 1] = uint64.lo >>> 8 & 0xFF;
+	buffer[offset + 0] = uint64.lo & 0xFF;
+}
+
+module.exports.bufferEncode64 = function(buffer, offset, uint64) {
+	buffer[offset] = uint64.hi >>> 24;
+	buffer[offset + 1] = uint64.hi >>> 16 & 0xFF;
+	buffer[offset + 2] = uint64.hi >>> 8 & 0xFF;
+	buffer[offset + 3] = uint64.hi & 0xFF;
+	buffer[offset + 4] = uint64.lo >>> 24;
+	buffer[offset + 5] = uint64.lo >>> 16 & 0xFF;
+	buffer[offset + 6] = uint64.lo >>> 8 & 0xFF;
+	buffer[offset + 7] = uint64.lo & 0xFF;
+}
+
+module.exports.int32Buffer2Bytes = function(b) {
+	var buffer = new Array(b.length);
+	var len = b.length;
+	var i = 0;
+	while (i < len) {
+		buffer[i * 4] = (b[i] & 0xFF000000) >>> 24;
+		buffer[i * 4 + 1] = (b[i] & 0x00FF0000) >>> 16;
+		buffer[i * 4 + 2] = (b[i] & 0x0000FF00) >>> 8;
+		buffer[i * 4 + 3] = (b[i] & 0x000000FF);
+		i++;
+	}
+	return buffer;
+}
+/*
+module.exports.int64Buffer2Bytes = function(b) {
+	var buffer = new Array(b.length);
+	var i = 0;
+	while (i < b.length) {
+		buffer[i * 8] = (b[i].hi & 0xFF000000) >>> 24;
+		buffer[i * 8 + 1] = (b[i].hi & 0x00FF0000) >>> 16;
+		buffer[i * 8 + 2] = (b[i].hi & 0x0000FF00) >>> 8;
+		buffer[i * 8 + 3] = (b[i].hi & 0x000000FF);
+		buffer[i * 8 + 4] = (b[i].lo & 0xFF000000) >>> 24;
+		buffer[i * 8 + 5] = (b[i].lo & 0x00FF0000) >>> 16;
+		buffer[i * 8 + 6] = (b[i].lo & 0x0000FF00) >>> 8;
+		buffer[i * 8 + 7] = (b[i].lo & 0x000000FF);
+		i++;
+	}
+	return buffer;
+}
+*/
+
+module.exports.string2Int32Buffer = function(s) {
+	return this.bytes2Int32Buffer(this.string2bytes(s));
+}
+
+var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+module.exports.b64Encode = function(input) {
+	var output = "";
+	var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+	var i = 0;
+
+	while (i < input.length) {
+
+		chr1 = input[i++];
+		chr2 = input[i++];
+		chr3 = input[i++];
+
+		enc1 = chr1 >> 2;
+		enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+		enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+		enc4 = chr3 & 63;
+
+		if (isNaN(chr2)) {
+			enc3 = enc4 = 64;
+		}
+		else if (isNaN(chr3)) {
+			enc4 = 64;
+		}
+
+		output +=
+			keyStr.charAt(enc1) + keyStr.charAt(enc2) +
+			keyStr.charAt(enc3) + keyStr.charAt(enc4);
+	}
+
+	return output;
+};
+
+module.exports.b64Decode = function(input) {
+	var output = [];
+	var chr1, chr2, chr3;
+	var enc1, enc2, enc3, enc4;
+	var i = 0;
+
+	input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+	while (i < input.length) {
+
+		enc1 = keyStr.indexOf(input.charAt(i++));
+		enc2 = keyStr.indexOf(input.charAt(i++));
+		enc3 = keyStr.indexOf(input.charAt(i++));
+		enc4 = keyStr.indexOf(input.charAt(i++));
+
+		chr1 = (enc1 << 2) | (enc2 >> 4);
+		chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+		chr3 = ((enc3 & 3) << 6) | enc4;
+
+		output.push(chr1);
+
+		if (enc3 != 64) {
+			output.push(chr2);
+		}
+		if (enc4 != 64) {
+			output.push(chr3);
+		}
+	}
+	return output;
+};
+},{"./op.js":6}],4:[function(require,module,exports){
 /////////////////////////////////////
 ///////////////  Jh /////////////////
-
-//// Written by Quantum Explorer ////
-////////// Dash Foundation //////////
-/// Released under the MIT License //
 /////////////////////////////////////
 
 var op = require('./op');
@@ -1079,27 +1326,9 @@ module.exports = function(input, format, output) {
   }
   return out;
 }
-},{"./helper":7,"./op":11}],9:[function(require,module,exports){
-// Copyright 2015-2016 Chen, Yi-Cyuan
 
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+},{"./helper":3,"./op":6}],5:[function(require,module,exports){
+// Keccak
 
 var HEX_CHARS = '0123456789abcdef'.split('');
 var KECCAK_PADDING = [1, 256, 65536, 16777216];
@@ -1592,295 +1821,472 @@ module.exports = methods;
 //     return new Keccak().update(msg).hex();
 //   }
 // }
-},{"./helper":7}],10:[function(require,module,exports){
-  /////////////////////////////////////
-  ///////////////  Echo ///////////////
 
-  //// Written by Quantum Explorer ////
-  ////////// Dash Foundation //////////
-  /// Released under the MIT License //
-  /////////////////////////////////////
+},{"./helper":3}],6:[function(require,module,exports){
+'use strict';
+//the right shift is important, it has to do with 32 bit operations in javascript, it will make things faster
+function u64(h, l) {
+  this.hi = h >>> 0;
+  this.lo = l >>> 0;
+}
 
-  var op = require('./op');
-  var h = require('./helper');
-  var aes = require('./aes');
+u64.prototype.set = function(oWord) {
+  this.lo = oWord.lo;
+  this.hi = oWord.hi;
+}
 
-  var ECHO_BlockSize = 128;
+u64.prototype.add = function(oWord) {
+  var lowest, lowMid, highMid, highest; //four parts of the whole 64 bit number..
 
-  var subWords = function(W, pK) {
-    for (var n = 0; n < 16; n++) {
-      var X = W[n];
-      var Y = new Array(4);
-      aes.AES_ROUND_LE(X, pK, Y);
-      aes.AES_ROUND_NOKEY_LE(Y, X);
-      if ((pK[0] = op.t32(pK[0] + 1)) === 0) {
-        if ((pK[1] = op.t32(pK[1] + 1)) === 0)
-          if ((pK[2] = op.t32(pK[2] + 1)) === 0)
-            pK[3] = op.t32(pK[3] + 1);
-      }
-    }
+  //need to add the respective parts from each number and the carry if on is present..
+  lowest = (this.lo & 0XFFFF) + (oWord.lo & 0XFFFF);
+  lowMid = (this.lo >>> 16) + (oWord.lo >>> 16) + (lowest >>> 16);
+  highMid = (this.hi & 0XFFFF) + (oWord.hi & 0XFFFF) + (lowMid >>> 16);
+  highest = (this.hi >>> 16) + (oWord.hi >>> 16) + (highMid >>> 16);
+
+  //now set the hgih and the low accordingly..
+  this.lo = (lowMid << 16) | (lowest & 0XFFFF);
+  this.hi = (highest << 16) | (highMid & 0XFFFF);
+
+  return this; //for chaining..
+};
+
+u64.prototype.addOne = function() {
+  if (this.lo === -1 || this.lo === 0xFFFFFFFF) {
+    this.lo = 0;
+    this.hi++;
+  }
+  else {
+    this.lo++;
+  }
+}
+
+u64.prototype.plus = function(oWord) {
+  var c = new u64(0, 0);
+  var lowest, lowMid, highMid, highest; //four parts of the whole 64 bit number..
+
+  //need to add the respective parts from each number and the carry if on is present..
+  lowest = (this.lo & 0XFFFF) + (oWord.lo & 0XFFFF);
+  lowMid = (this.lo >>> 16) + (oWord.lo >>> 16) + (lowest >>> 16);
+  highMid = (this.hi & 0XFFFF) + (oWord.hi & 0XFFFF) + (lowMid >>> 16);
+  highest = (this.hi >>> 16) + (oWord.hi >>> 16) + (highMid >>> 16);
+
+  //now set the hgih and the low accordingly..
+  c.lo = (lowMid << 16) | (lowest & 0XFFFF);
+  c.hi = (highest << 16) | (highMid & 0XFFFF);
+
+  return c; //for chaining..
+};
+
+u64.prototype.not = function() {
+  return new u64(~this.hi, ~this.lo);
+}
+
+u64.prototype.one = function() {
+  return new u64(0x0, 0x1);
+}
+
+u64.prototype.zero = function() {
+  return new u64(0x0, 0x0);
+}
+
+u64.prototype.neg = function() {
+  return this.not().plus(this.one());
+}
+
+u64.prototype.minus = function(oWord) {
+  return this.plus(oWord.neg());
+};
+
+u64.prototype.isZero = function() {
+  return (this.lo === 0) && (this.hi === 0);
+}
+
+function isLong(obj) {
+  return (obj && obj["__isLong__"]) === true;
+}
+
+function fromNumber(value) {
+  if (isNaN(value) || !isFinite(value))
+    return this.zero();
+  var pow32 = (1 << 32);
+  return new u64((value % pow32) | 0, (value / pow32) | 0);
+}
+
+u64.prototype.multiply = function(multiplier) {
+  if (this.isZero())
+    return this.zero();
+  if (!isLong(multiplier))
+    multiplier = fromNumber(multiplier);
+  if (multiplier.isZero())
+    return this.zero();
+
+  // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
+  // We can skip products that would overflow.
+
+  var a48 = this.hi >>> 16;
+  var a32 = this.hi & 0xFFFF;
+  var a16 = this.lo >>> 16;
+  var a00 = this.lo & 0xFFFF;
+
+  var b48 = multiplier.hi >>> 16;
+  var b32 = multiplier.hi & 0xFFFF;
+  var b16 = multiplier.lo >>> 16;
+  var b00 = multiplier.lo & 0xFFFF;
+
+  var c48 = 0,
+    c32 = 0,
+    c16 = 0,
+    c00 = 0;
+  c00 += a00 * b00;
+  c16 += c00 >>> 16;
+  c00 &= 0xFFFF;
+  c16 += a16 * b00;
+  c32 += c16 >>> 16;
+  c16 &= 0xFFFF;
+  c16 += a00 * b16;
+  c32 += c16 >>> 16;
+  c16 &= 0xFFFF;
+  c32 += a32 * b00;
+  c48 += c32 >>> 16;
+  c32 &= 0xFFFF;
+  c32 += a16 * b16;
+  c48 += c32 >>> 16;
+  c32 &= 0xFFFF;
+  c32 += a00 * b32;
+  c48 += c32 >>> 16;
+  c32 &= 0xFFFF;
+  c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+  c48 &= 0xFFFF;
+  return new u64((c48 << 16) | c32, (c16 << 16) | c00);
+};
+
+u64.prototype.shiftLeft = function(bits) {
+  bits = bits % 64;
+  var c = new u64(0, 0);
+  if (bits === 0) {
+    return this.clone();
+  }
+  else if (bits > 31) {
+    c.lo = 0;
+    c.hi = this.lo << (bits - 32);
+  }
+  else {
+    var toMoveUp = this.lo >>> 32 - bits;
+    c.lo = this.lo << bits;
+    c.hi = (this.hi << bits) | toMoveUp;
+  }
+  return c; //for chaining..
+};
+
+u64.prototype.setShiftLeft = function(bits) {
+  if (bits === 0) {
+    return this;
+  }
+  if (bits > 63) {
+    bits = bits % 64;
+  }
+  
+  if (bits > 31) {
+    this.hi = this.lo << (bits - 32);
+    this.lo = 0;
+  }
+  else {
+    var toMoveUp = this.lo >>> 32 - bits;
+    this.lo <<= bits;
+    this.hi = (this.hi << bits) | toMoveUp;
+  }
+  return this; //for chaining..
+};
+//Shifts this word by the given number of bits to the right (max 32)..
+u64.prototype.shiftRight = function(bits) {
+  bits = bits % 64;
+  var c = new u64(0, 0);
+  if (bits === 0) {
+    return this.clone();
+  }
+  else if (bits >= 32) {
+    c.hi = 0;
+    c.lo = this.hi >>> (bits - 32);
+  }
+  else {
+    var bitsOff32 = 32 - bits,
+      toMoveDown = this.hi << bitsOff32 >>> bitsOff32;
+    c.hi = this.hi >>> bits;
+    c.lo = this.lo >>> bits | (toMoveDown << bitsOff32);
+  }
+  return c; //for chaining..
+};
+//Rotates the bits of this word round to the left (max 32)..
+u64.prototype.rotateLeft = function(bits) {
+  if (bits > 32) {
+    return this.rotateRight(64 - bits);
+  }
+  var c = new u64(0, 0);
+  if (bits === 0) {
+    c.lo = this.lo >>> 0;
+    c.hi = this.hi >>> 0;
+  }
+  else if (bits === 32) { //just switch high and low over in this case..
+    c.lo = this.hi;
+    c.hi = this.lo;
+  }
+  else {
+    c.lo = (this.lo << bits) | (this.hi >>> (32 - bits));
+    c.hi = (this.hi << bits) | (this.lo >>> (32 - bits));
+  }
+  return c; //for chaining..
+};
+
+u64.prototype.setRotateLeft = function(bits) {
+  if (bits > 32) {
+    return this.setRotateRight(64 - bits);
+  }
+  var newHigh;
+  if (bits === 0) {
+    return this;
+  }
+  else if (bits === 32) { //just switch high and low over in this case..
+    newHigh = this.lo;
+    this.lo = this.hi;
+    this.hi = newHigh;
+  }
+  else {
+    newHigh = (this.hi << bits) | (this.lo >>> (32 - bits));
+    this.lo = (this.lo << bits) | (this.hi >>> (32 - bits));
+    this.hi = newHigh;
+  }
+  return this; //for chaining..
+};
+//Rotates the bits of this word round to the right (max 32)..
+u64.prototype.rotateRight = function(bits) {
+  if (bits > 32) {
+    return this.rotateLeft(64 - bits);
+  }
+  var c = new u64(0, 0);
+  if (bits === 0) {
+    c.lo = this.lo >>> 0;
+    c.hi = this.hi >>> 0;
+  }
+  else if (bits === 32) { //just switch high and low over in this case..
+    c.lo = this.hi;
+    c.hi = this.lo;
+  }
+  else {
+    c.lo = (this.hi << (32 - bits)) | (this.lo >>> bits);
+    c.hi = (this.lo << (32 - bits)) | (this.hi >>> bits);
+  }
+  return c; //for chaining..
+};
+u64.prototype.setFlip = function() {
+  var newHigh;
+  newHigh = this.lo;
+  this.lo = this.hi;
+  this.hi = newHigh;
+  return this;
+};
+//Rotates the bits of this word round to the right (max 32)..
+u64.prototype.setRotateRight = function(bits) {
+  if (bits > 32) {
+    return this.setRotateLeft(64 - bits);
   }
 
-  var shiftRow1 = function(W, a, b, c, d) {
-    var tmp;
-    tmp = W[a][0];
-    W[a][0] = W[b][0];
-    W[b][0] = W[c][0];
-    W[c][0] = W[d][0];
-    W[d][0] = tmp;
-    tmp = W[a][1];
-    W[a][1] = W[b][1];
-    W[b][1] = W[c][1];
-    W[c][1] = W[d][1];
-    W[d][1] = tmp;
-    tmp = W[a][2];
-    W[a][2] = W[b][2];
-    W[b][2] = W[c][2];
-    W[c][2] = W[d][2];
-    W[d][2] = tmp;
-    tmp = W[a][3];
-    W[a][3] = W[b][3];
-    W[b][3] = W[c][3];
-    W[c][3] = W[d][3];
-    W[d][3] = tmp;
+  if (bits === 0) {
+    return this;
   }
-
-  var shiftRow2 = function(W, a, b, c, d) {
-    var tmp;
-    tmp = W[a][0];
-    W[a][0] = W[c][0];
-    W[c][0] = tmp;
-    tmp = W[b][0];
-    W[b][0] = W[d][0];
-    W[d][0] = tmp;
-    tmp = W[a][1];
-    W[a][1] = W[c][1];
-    W[c][1] = tmp;
-    tmp = W[b][1];
-    W[b][1] = W[d][1];
-    W[d][1] = tmp;
-    tmp = W[a][2];
-    W[a][2] = W[c][2];
-    W[c][2] = tmp;
-    tmp = W[b][2];
-    W[b][2] = W[d][2];
-    W[d][2] = tmp;
-    tmp = W[a][3];
-    W[a][3] = W[c][3];
-    W[c][3] = tmp;
-    tmp = W[b][3];
-    W[b][3] = W[d][3];
-    W[d][3] = tmp;
+  else if (bits === 32) { //just switch high and low over in this case..
+    var newHigh;
+    newHigh = this.lo;
+    this.lo = this.hi;
+    this.hi = newHigh;
   }
-
-  var shiftRow3 = function(W, a, b, c, d) {
-    shiftRow1(W, d, c, b, a);
+  else {
+    newHigh = (this.lo << (32 - bits)) | (this.hi >>> bits);
+    this.lo = (this.hi << (32 - bits)) | (this.lo >>> bits);
+    this.hi = newHigh;
   }
+  return this; //for chaining..
+};
+//Xors this word with the given other..
+u64.prototype.xor = function(oWord) {
+  var c = new u64(0, 0);
+  c.hi = this.hi ^ oWord.hi;
+  c.lo = this.lo ^ oWord.lo;
+  return c; //for chaining..
+};
+//Xors this word with the given other..
+u64.prototype.setxorOne = function(oWord) {
+  this.hi ^= oWord.hi;
+  this.lo ^= oWord.lo;
+  return this; //for chaining..
+};
+//Ands this word with the given other..
+u64.prototype.and = function(oWord) {
+  var c = new u64(0, 0);
+  c.hi = this.hi & oWord.hi;
+  c.lo = this.lo & oWord.lo;
+  return c; //for chaining..
+};
 
-  var shiftRows = function(W) {
-    shiftRow1(W, 1, 5, 9, 13);
-    shiftRow2(W, 2, 6, 10, 14);
-    shiftRow3(W, 3, 7, 11, 15);
+//Creates a deep copy of this Word..
+u64.prototype.clone = function() {
+  return new u64(this.hi, this.lo);
+};
+
+u64.prototype.setxor64 = function() {
+  var a = arguments;
+  var i = a.length;
+  while (i--) {
+    this.hi ^= a[i].hi;
+    this.lo ^= a[i].lo;
   }
+  return this;
+}
 
-  var mixColumn = function(W, ia, ib, ic, id) {
-    for (var n = 0; n < 4; n++) {
-      var a = W[ia][n];
-      var b = W[ib][n];
-      var c = W[ic][n];
-      var d = W[id][n];
-      var ab = a ^ b;
-      var bc = b ^ c;
-      var cd = c ^ d;
-      var abx = ((ab & (0x80808080)) >>> 7) * 27 ^
-        ((ab & (0x7F7F7F7F)) << 1);
-      var bcx = ((bc & (0x80808080)) >>> 7) * 27 ^
-        ((bc & (0x7F7F7F7F)) << 1);
-      var cdx = ((cd & (0x80808080)) >>> 7) * 27 ^
-        ((cd & (0x7F7F7F7F)) << 1);
-      W[ia][n] = abx ^ bc ^ d;
-      W[ib][n] = bcx ^ a ^ cd;
-      W[ic][n] = cdx ^ ab ^ d;
-      W[id][n] = abx ^ bcx ^ cdx ^ ab ^ c;
+module.exports.u64 = u64;
+
+module.exports.u = function(h, l) {
+  return new u64(h, l);
+}
+/*
+module.exports.add64 = function(a, b) {
+  var lowest, lowMid, highMid, highest; //four parts of the whole 64 bit number..
+
+  //need to add the respective parts from each number and the carry if on is present..
+  lowest = (a.lo & 0XFFFF) + (b.lo & 0XFFFF);
+  lowMid = (a.lo >>> 16) + (b.lo >>> 16) + (lowest >>> 16);
+  highMid = (a.hi & 0XFFFF) + (b.hi & 0XFFFF) + (lowMid >>> 16);
+  highest = (a.hi >>> 16) + (b.hi >>> 16) + (highMid >>> 16);
+
+  var r = new this.u64((highest << 16) | (highMid & 0XFFFF), (lowMid << 16) | (lowest & 0XFFFF));
+
+  return r;
+};
+*/
+module.exports.xor64 = function() {
+  var a = arguments,
+    h = a[0].hi,
+    l = a[0].lo;
+      var i = a.length-1;
+  do {
+    h ^= a[i].hi;
+    l ^= a[i].lo;
+    i--;
+  } while (i>0);
+  return new this.u64(h, l);
+}
+
+module.exports.clone64Array = function(array) {
+  var i = 0;
+  var len = array.length;
+  var a = new Array(len);
+  while(i<len) {
+    a[i] = array[i];
+    i++;
+  }
+  return a;
+}
+
+//this shouldn't be a problem, but who knows in the future javascript might support 64bits
+module.exports.t32 = function(x) {
+  return (x & 0xFFFFFFFF)
+}
+
+module.exports.rotl32 = function(x, c) {
+  return (((x) << (c)) | ((x) >>> (32 - (c)))) & (0xFFFFFFFF);
+}
+
+module.exports.rotr32 = function(x, c) {
+  return this.rotl32(x, (32 - (c)));
+}
+
+module.exports.swap32 = function(val) {
+  return ((val & 0xFF) << 24) |
+    ((val & 0xFF00) << 8) |
+    ((val >>> 8) & 0xFF00) |
+    ((val >>> 24) & 0xFF);
+}
+
+module.exports.swap32Array = function(a) {
+  //can't do this with map because of support for IE8 (Don't hate me plz).
+  var i = 0, len = a.length;
+  var r = new Array(i);
+  while (i<len) {
+    r[i] = (this.swap32(a[i]));
+    i++;
+  }
+  return r;
+}
+
+module.exports.xnd64 = function(x, y, z) {
+  return new this.u64(x.hi ^ ((~y.hi) & z.hi), x.lo ^ ((~y.lo) & z.lo));
+}
+/*
+module.exports.load64 = function(x, i) {
+  var l = x[i] | (x[i + 1] << 8) | (x[i + 2] << 16) | (x[i + 3] << 24);
+  var h = x[i + 4] | (x[i + 5] << 8) | (x[i + 6] << 16) | (x[i + 7] << 24);
+  return new this.u64(h, l);
+}
+*/
+module.exports.bufferInsert = function(buffer, bufferOffset, data, len, dataOffset) {
+  dataOffset = dataOffset | 0;
+  var i = 0;
+  while (i < len) {
+    buffer[i + bufferOffset] = data[i + dataOffset];
+    i++;
+  }
+}
+
+module.exports.bufferInsert64 = function(buffer, bufferOffset, data, len) {
+  var i = 0;
+  while (i < len) {
+    buffer[i + bufferOffset] = data[i].clone();
+    i++;
+  }
+}
+/*
+module.exports.buffer2Insert = function(buffer, bufferOffset, bufferOffset2, data, len, len2) {
+  while (len--) {
+    var j = len2;
+    while (j--) {
+      buffer[len + bufferOffset][j + bufferOffset2] = data[len][j];
     }
   }
-
-  var finalize = function(ctx, W) {
-    var int32Buf = op.swap32Array(h.bytes2Int32Buffer(ctx.buffer));
-    for (var u = 0; u < 8; u++) {
-      for (var v = 0; v < 4; v++) {
-        ctx.state[u][v] ^= int32Buf[u * 4 + v] ^ W[u][v] ^ W[u + 8][v];
-      }
-    }
+}
+*/
+module.exports.bufferInsertBackwards = function(buffer, bufferOffset, data, len) {
+  var i = 0;
+  while (i < len) {
+    buffer[i + bufferOffset] = data[len - 1 - i];
+    i++;
   }
+}
 
-  var inputBlock = function(ctx, W) {
-    op.buffer2Insert(W, 0, 0, ctx.state, 8, 4);
-    var int32Buf = op.swap32Array(h.bytes2Int32Buffer(ctx.buffer));
-    for (var u = 0; u < 8; u++) {
-      W[u + 8][0] = (int32Buf[4 * u]);
-      W[u + 8][1] = (int32Buf[4 * u + 1]);
-      W[u + 8][2] = (int32Buf[4 * u + 2]);
-      W[u + 8][3] = (int32Buf[4 * u + 3]);
-    }
+module.exports.bufferSet = function(buffer, bufferOffset, value, len) {
+  var i = 0;
+  while (i < len) {
+    buffer[i + bufferOffset] = value;
+    i++;
   }
+}
 
-  var mixColumns = function(W) {
-    mixColumn(W, 0, 1, 2, 3);
-    mixColumn(W, 4, 5, 6, 7);
-    mixColumn(W, 8, 9, 10, 11);
-    mixColumn(W, 12, 13, 14, 15);
+module.exports.bufferXORInsert = function(buffer, bufferOffset, data, dataOffset, len) {
+  var i = 0;
+  while (i < len) {
+    buffer[i + bufferOffset] ^= data[i + dataOffset];
+    i++;
   }
+}
 
-  var ROUND = function(W,K) {
-    subWords(W,K);
-    shiftRows(W);
-    mixColumns(W);
+module.exports.xORTable = function(d, s1, s2, len) {
+  var i = 0;
+  while (i < len) {
+    d[i] = s1[i] ^ s2[i];
+    i++
   }
+}
 
-  var compress = function(ctx) {
-    var W = new Array(16);
-    for (var i = 0; i < 16; i++) {
-      W[i] = new Array(4);
-    }
-    var K = new Array(4);
-    op.bufferInsert(K,0,ctx.C,4);
-    inputBlock(ctx, W);
-    for (var u = 0; u < 10; u++) {
-      ROUND(W,K);
-    }
-    finalize(ctx,W);
-  }
-
-  var incrCounter = function(ctx, val) {
-    ctx.C[0] = op.t32(ctx.C[0] + op.t32(val));
-    if (ctx.C[0] < op.t32(val)) {
-      if ((ctx.C[1] = op.t32(ctx.C[1] + 1)) === 0) {
-        if ((ctx.C[2] = op.t32(ctx.C[2] + 1)) === 0) {
-          ctx.C[3] = op.t32(ctx.C[3] + 1);
-        }
-      }
-    }
-  }
-
-  var echoInit = function(ctx) {
-    ctx.state = new Array(8);
-    for (var i = 0; i < 8; i++) {
-      ctx.state[i] = new Array(4);
-    }
-    ctx.state[0][0] = 512;
-    ctx.state[0][1] = ctx.state[0][2] = ctx.state[0][3] = 0;
-    ctx.state[1][0] = 512;
-    ctx.state[1][1] = ctx.state[1][2] = ctx.state[1][3] = 0;
-    ctx.state[2][0] = 512;
-    ctx.state[2][1] = ctx.state[2][2] = ctx.state[2][3] = 0;
-    ctx.state[3][0] = 512;
-    ctx.state[3][1] = ctx.state[3][2] = ctx.state[3][3] = 0;
-    ctx.state[4][0] = 512;
-    ctx.state[4][1] = ctx.state[4][2] = ctx.state[4][3] = 0;
-    ctx.state[5][0] = 512;
-    ctx.state[5][1] = ctx.state[5][2] = ctx.state[5][3] = 0;
-    ctx.state[6][0] = 512;
-    ctx.state[6][1] = ctx.state[6][2] = ctx.state[6][3] = 0;
-    ctx.state[7][0] = 512;
-    ctx.state[7][1] = ctx.state[7][2] = ctx.state[7][3] = 0;
-    ctx.ptr = 0;
-    ctx.C = new Array(4);
-    op.bufferSet(ctx.C,0,0,4);
-    ctx.buffer = new Array(ECHO_BlockSize);
-  }
-
-  var echo = function(ctx, data) {
-    var buf, ptr;
-    buf = ctx.buffer;
-    ptr = ctx.ptr;
-    var len = data.length;
-    if (len < ctx.buffer.length - ptr) {
-      op.bufferInsert(buf, ptr, data, data.length);
-      ptr += data.length;
-      ctx.ptr = ptr;
-      return;
-    }
-    while (len > 0) {
-      var clen = ctx.buffer.length - ptr;
-      if (clen > len) clen = len;
-      op.bufferInsert(buf, ptr, data, clen);
-      ptr += clen;
-      data = data.slice(clen);
-      len -= clen;
-      if (ptr === ctx.buffer.length) {
-        var int32Buf = h.bytes2Int32Buffer(buf);
-        incrCounter(ctx, 1024);
-        compress(ctx);
-        ptr = 0;
-      }
-    }
-    ctx.ptr = ptr;
-  }
-
-  var echoClose = function(ctx) {
-    var out = new Array(16);
-    var buf = ctx.buffer;
-    var len = ctx.buffer.length;
-    var ptr = ctx.ptr;
-    var elen = (ptr << 3);
-    incrCounter(ctx, elen);
-    var cBytes = h.int32Buffer2Bytes(op.swap32Array(ctx.C));
-    /*
-     * If elen is zero, then this block actually contains no message
-     * bit, only the first padding bit.
-     */
-    if (elen === 0) {
-      ctx.C[0] = ctx.C[1] = ctx.C[2] = ctx.C[3] = 0;
-    }
-    buf[ptr++] = 0x80;
-
-    op.bufferSet(buf,ptr, 0, len - ptr);
-    if (ptr > (len - 18)) {
-      compress(ctx);
-      op.bufferSet(ctx.C,0,0,4);
-      op.bufferSet(buf, 0, 0,len);
-    }
-    buf[len - 17] = 2;
-    op.bufferInsert(buf,len - 16, cBytes, 16);
-    compress(ctx);
-    for (var u = 0; u < 4; u++) {
-      for (var v = 0; v < 4; v++) {
-        out[u*4 + v] = op.swap32(ctx.state[u][v]);
-      }
-    }
-    return out;
-  }
-
-  module.exports = function(input, format, output) {
-    var msg;
-    if (format === 1) {
-      msg = input;
-    }
-    else if (format === 2) {
-      msg = h.int32Buffer2Bytes(input);
-    }
-    else {
-      msg = h.string2bytes(input);
-    }
-    var ctx = {};
-    echoInit(ctx);
-    echo(ctx, msg);
-    var r = echoClose(ctx);
-    var out;
-    if (output === 2) {
-      out = r;
-    }
-    else if (output === 1) {
-      out = h.int32Buffer2Bytes(r)
-    }
-    else {
-      out = h.int32ArrayToHexString(r)
-    }
-    return out;
-  }
-
-},{"./helper":7,"./op":11}],"tribushash":[function(require,module,exports){
+},{}],"tribushash":[function(require,module,exports){
 'use strict';
 
 var keccak = require('./lib/keccak').keccak_512;
@@ -1928,4 +2334,4 @@ module.exports.digest = function(str,format, output) {
   }
 }
 
-},{"./lib/blake":2,"./lib/bmw":3,"./lib/cubehash":4,"./lib/echo":5,"./lib/groestl":6,"./lib/helper":7,"./lib/jh":8,"./lib/keccak":9,"./lib/luffa":10,"./lib/shavite":12,"./lib/simd":13,"./lib/skein":14}]},{},[]);
+},{"./lib/echo":2,"./lib/helper":3,"./lib/jh":4,"./lib/keccak":5}]},{},[]);
