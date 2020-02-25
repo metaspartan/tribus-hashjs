@@ -29,7 +29,7 @@ module.exports.keccak = function(str,format, output) {
   }
 }
 
-module.exports.digest = function(str,format, output) {
+module.exports.tribus = function(str,format, output) {
   var a = jh(a,2,2);
   a = this.keccak(a,2,1);
   a = echo(a,2,2);
