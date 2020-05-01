@@ -12,8 +12,8 @@ $ npm install --save tribus-hashjs
 ```js
 var tribus = require('tribus-hashjs');
 
-tribus.tribus('The great experiment continues.');
-// -> '4da3b7c5ff698c6546564ebc72204f31885cd87b75b2b3ca5a93b5d75db85b8c'
+tribus.digest('Denarius');
+// -> '2112e90c3370489730a118a3933da591b3bda12031f570293addf53c19ec9f9e'
 
 tribus.echo('The great experiment continues.');
 // -> 'b1db282b1672f3423c1e1bdf4496a8ddda0b6f483e92e9a8be2efbaab0ea230814f1f1485d919285deac13794dc215000eb39a47ac32bfc07299a0475049be2e'

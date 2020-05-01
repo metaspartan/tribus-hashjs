@@ -12,7 +12,8 @@ module.exports = function(grunt) {
                 dest: 'dist/tribus-hash.js',
                 options: {
                     require: [
-                        './index.js:tribushash'
+                        './index.js:tribushash',
+						'buffer'
                     ]
                 }
             }

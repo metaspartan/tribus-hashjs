@@ -1,6 +1,6 @@
 {
   "name": "tribus-hashjs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Tribus javascript hashing algorithm in pure javascript",
   "main": "index.js",
   "scripts": {
